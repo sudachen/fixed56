@@ -7,7 +7,7 @@ import (
 var ErrOverflow = errors.New("overflow")
 
 func (x Fixed) String() string {
-	return format(x)
+	return x.format()
 }
 
 func New(val int64) Fixed {
@@ -19,34 +19,50 @@ func From(val float64) Fixed {
 }
 
 func One() Fixed {
-	return one()
+	return fixedOne
 }
 
 func Zero() Fixed {
-	return zero()
+	return Fixed{}
 }
 
 func (x Fixed) Floor() int64 {
-	return integer(x)
+	return x.floor()
+}
+
+func (x Fixed) Ceil() int64 {
+	return x.ceil()
 }
 
 func (x Fixed) Round() int64 {
-	return round(x)
+	return x.round()
 }
 
 func (x Fixed) Float() float64 {
-	return float(x)
+	return x.float()
 }
 
 func (x Fixed) Mul(y Fixed) Fixed {
 	return mul(x,y)
 }
 
+func (x Fixed) Div(y Fixed) Fixed {
+	return div(x,y)
+}
+
+func (x Fixed) Add(y Fixed) Fixed {
+	return add(x,y)
+}
+
+func (x Fixed) Sub(y Fixed) Fixed {
+	return sub(x,y)
+}
+
 func BinCDF(n int64, p Fixed, x int64) Fixed {
 	if x < 0 {
-		return zero()
+		return Zero()
 	} else if x >= n {
-		return one()
+		return One()
 	} else {
 		return incomplete(n-x, x+1, oneValue-p.fixed56())
 	}

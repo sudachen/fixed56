@@ -35,7 +35,7 @@ func log2(x int64, onew int) int64 {
 			// required x > 0
 			panic(ErrOverflow)
 		}
-		N = onew - bits.Len64(uint64(x)) + 1
+		N = (onew + 1) - bits.Len64(uint64(x))
 		b = -(int64(N) << fracBits)
 	} else {
 		if x == one {

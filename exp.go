@@ -1,7 +1,7 @@
 package fixed56
 
 func exp(x Fixed) Fixed{
-	if integer(x) < -38 {
+	if x.integer() < -38 {
 		return fixed(0)
 	}
 	return exp56(x.fixed56())
@@ -12,17 +12,17 @@ func exp56(x int64) Fixed {
 	z := rawfixed(ey)
 
 	if x < 0 {
-		if iszero(z) {
+		if z.iszero() {
 			panic(ErrOverflow)
 		}
-		z = inv(z)
+		z = z.inv()
 		k = -k
 	}
 
 	if k < 0 {
-		z.rsh(uint(-k))
+		z = z.shr(int(-k))
 	}  else {
-		z.lsh(uint(k))
+		z = z.shl(int(k))
 	}
 
 	return z
@@ -31,16 +31,16 @@ func exp56(x int64) Fixed {
 func exp_(x int64) (ey, k int64) {
 	// exp(x) = 1/exp(-x) when x < 0
 	// k = floor(x/ln(2)) => e^x = e^(ln(2)*k + (x - ln(2)*k)) = 2^k * e^(x-ln(2)*k)
-	// y = x-ln(2)*k => e^y = 1 + y + y^2/2 + y^3/6 + y^4/24 + y^5/120
+	// y = x-ln(2)*k => e^y = 1 + y + y^2/2 + y^3/6 + y^4/24 + y^5/120 + ...
 
 	xs := x >> 63
 	a := (x ^ xs) - xs // abs(x)
 	t := mul56u(a, invLn2)
 	k = floor56(t)
 	u := mul56u(k, ln2)
-	k >>= 56 // truncate to integer
+	k >>= fracBits // truncate to integer
 	y := a - u
-	ey = (oneValue << (56 - fracBits)) + y
+	ey = oneValue + y
 	py := y
 
 	for _, j := range invX {

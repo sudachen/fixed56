@@ -24,26 +24,24 @@ func (acc *accuracy) update(got Fixed, fwant float64) bool {
 		epsilon = acc.Epsilon
 	}
 	want := From(fwant)
-	e := math.Abs(float(got)-float(want))
+	e := math.Abs(got.float()-want.float())
 	if e > epsilon {
 		return false
 	}
 
-	a, b := got.val.BitLen(), want.val.BitLen()
+	a, b := got.bitlen(), want.bitlen()
 	if a != b {
 		if b > a {
 			a = b
 		}
 	}
 	t := 0
-	for i := a - 1; i >= 0; i-- {
-		if got.val.Bit(i) != want.val.Bit(i) {
+	if a > fracBits {a = fracBits}
+	for i := a; i >= 0; i-- {
+		if got.bit(i) != want.bit(i) {
 			break
 		}
 		t++
-	}
-	if a < fracBits {
-		t = fracBits - a + t
 	}
 	if t > acc.max {
 		acc.max = t

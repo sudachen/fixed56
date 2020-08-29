@@ -26,13 +26,11 @@ func lgamma(x int64) Fixed {
 		const gW5 = int64(0x36cf7499b5ab)   // 0.0008363399189962821
 		const gW6 = int64(-0x6ae2742e790f)  // -0.0016309293409657527
 
-		// calculate with 56 bit precision independent of fraction part size
 		t := ilog56(x) - oneValue
 		z := div56(1, x)
 		y := mul56(z, z)
 		w := gW0 + mul56(z, gW1+mul56(y, gW2+mul56(y, gW3+mul56(y, gW4+mul56(y, gW5+mul56(y, gW6))))))
 		a := sub(fixed(x), rawfixed(halfValue))
-
 		return add(mul(a, rawfixed(t)), rawfixed(w))
 	}
 }

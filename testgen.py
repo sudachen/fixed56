@@ -4,17 +4,18 @@ import scipy.stats
 import random
 
 prec = 56
+total = 128
 
 def mul(a, b):
     z = int(a * (1 << prec)) * int(b * (1 << prec))
-    return ((z >> (prec-1)) + 1) >> 1
+    return z >> prec
 
 
 def div(a, b):
     a = int(a * (1 << prec))
     b = int(b * (1 << prec))
-    z = (a * (1 << prec) * 2) // b
-    return (z + 1) >> 1
+    z = (a * (1 << prec)) // b
+    return z
 
 
 def fixed(x):
@@ -34,7 +35,7 @@ def floor(x):
 
 
 def round(x):
-    return float(int(x + (0.5 if x > -1 else -0.5)))
+    return float(int(x + (0.5 if x > 0 else -0.5)))
 
 
 def string(x):
@@ -43,8 +44,8 @@ def string(x):
     v = abs(x)
     #if (v >> prec) >= maxval:
     #    return "overflow"
-    fmt = "%%s%%d+%%0%dx/%d" % (prec / 4, prec)
-    return fmt % (("", "-")[x < 0], v >> prec, v & ((1 << prec) - 1))
+    fmt = "%%s%%d'%%0%dx/%d" % (prec / 4, prec)
+    return fmt % (("+", "-")[x < 0], v >> prec, v & ((1 << prec) - 1))
 
 
 def xstring(a, b, v):
@@ -125,6 +126,8 @@ var divTestCases = []struct {
     case(1, 3)
     case(10, 7)
     case(18, 7)
+    case(10,600)
+    case(100000,600)
     f.write('\n}\n')
     f.close()
     if os.path.isfile('div_ts_test.go'):
@@ -232,9 +235,6 @@ var bincdfTestCases = []struct {
         q(n)
     for k in range(50):
         n = random.randint(30000,1000000)
-        q(n)
-    for k in range(50):
-        n = random.randint(300,10000000)
         q(n)
 
     f.write('\n}\n')

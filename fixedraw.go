@@ -21,16 +21,6 @@ func fixed56(v int64) int64 {
 	return v << fracBits
 }
 
-func abs56(x int64) int64 {
-	xs := x >> 63
-	return (x ^ xs) - xs
-}
-
-func sign56(x int64) int {
-	xs := x >> 63
-	return int(xs)*2 + 1
-}
-
 func mul56(x, y int64) int64 {
 	hi2, lo2 := bits.Mul64(uint64(x), uint64(y))
 	lo, c := bits.Add64(lo2, uint64(halfValue), 0)
@@ -62,15 +52,6 @@ func div56(x, y int64) int64 {
 		panic(ErrOverflow)
 	}
 	return int64(v) * ((xs^ys)*2 + 1)
-}
-
-func inv56(x int64) int64 {
-	xs := x >> 63
-	b := uint64((x ^ xs) - xs) // abs
-	hi := uint64(oneValue)>>(64-fracBits-1)
-	v, _ := bits.Div64(hi, 0, b)
-	v = (v + 1) >> 1
-	return int64(v) * (xs*2 + 1)
 }
 
 func floor56(x int64) int64 {

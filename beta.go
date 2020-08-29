@@ -10,16 +10,14 @@ func incomplete(a, b, x int64) Fixed {
 	bt := fixed(0)
 
 	if 0 < x && x < oneValue {
-		//bt = exp(lgamma(a+b) - lgamma(a) - lgamma(b) + alogx(x, a) + alogx(oneValue-x, b))
 		bt = exp(addx(subx(lgamma(a+b),lgamma(a),lgamma(b)),alogx(x,a),alogx(oneValue-x, b)))
 	} else if x < 0 || x > oneValue {
 		panic(ErrOverflow)
 	}
 
 	bcfx := func() Fixed {
-		if iszero(bt) { return bt }
+		if bt.iszero() { return bt }
 		h := bcf(x, a, b)
-		//fmt.Println(a, b, bt.Float(),h.Float(),mul(bt,h).Float(), div(mul(bt,h),fixed(a)).Float())
 		return div(mul(bt,h),fixed(a))
 	}
 
@@ -32,14 +30,14 @@ func incomplete(a, b, x int64) Fixed {
 	return bcfx()
 }
 
-var bcfEpsilon = rawfixed(1<<8)
+var bcfEpsilon = from(1e-13)
 
 func bcf(x, a, b int64) Fixed {
 	const iters = 300
 	xx := rawfixed(x)
 
 	nonzero := func(z Fixed) Fixed {
-		if iszero(z) {
+		if z.iszero() {
 			return rawfixed(1)
 		}
 		return z
@@ -47,7 +45,8 @@ func bcf(x, a, b int64) Fixed {
 
 	c := fixedOne
 	// d = 1/(nonzero(1-x*(a+b)/(a+1)))
-	d := inv(nonzero(sub(fixedOne,div(mul(xx,fixed(a+b)),fixed(a+1)))))
+	d := nonzero(sub(fixedOne,div(mul(xx,fixed(a+b)),fixed(a+1)))).inv()
+
 	h := d
 	del := fixed(0)
 
@@ -58,7 +57,7 @@ func bcf(x, a, b int64) Fixed {
 		// d_{2m} = n = m(b-m)x/((a+2m-1)(a+2m))
 		n := div(mulx(fm,fixed(b-m),xx),mul(fixed(a+m+m-1),amm))
 		// d = 1/(nonzero(1+n*d))
-		d = inv(nonzero(muladd1(n,d)))
+		d = nonzero(muladd1(n,d)).inv()
 		// c = nonzero(1 + n/c)
 		c = nonzero(divadd1(n,c))
 		// h = h*d*c
@@ -67,7 +66,7 @@ func bcf(x, a, b int64) Fixed {
 		// d_{2m+1} = n = -(a+m)(a+b+m)x/((a+2m)(a+2m+1))
 		n = div(mulx(fixed(-a-m),fixed(a+b+m),xx),mul(amm,fixed(a+m+m+1)))
 		// d = 1/(nonzero(1+n*d))
-		d = inv(nonzero(muladd1(n,d)))
+		d = nonzero(muladd1(n,d)).inv()
 		// c = nonzero(1 + n/c)
 		c = nonzero(divadd1(n,c))
 
@@ -75,10 +74,11 @@ func bcf(x, a, b int64) Fixed {
 		//fmt.Println(del.Float())
 		h = mul(h,del)
 
-		if cmpabs(sub(del,fixedOne),bcfEpsilon) <= 0 {
+		if sub(del,fixedOne).less(bcfEpsilon) {
 			return h
 		}
 	}
-	panic(ErrOverflow)
+	//panic(ErrOverflow)
+	return h
 }
 
