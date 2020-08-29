@@ -30,7 +30,7 @@ func incomplete(a, b, x int64) Fixed {
 	return bcfx()
 }
 
-var bcfEpsilon = from(1e-13)
+var bcfEpsilon = from(1e-14)
 
 func bcf(x, a, b int64) Fixed {
 	const iters = 300
@@ -56,6 +56,7 @@ func bcf(x, a, b int64) Fixed {
 
 		// d_{2m} = n = m(b-m)x/((a+2m-1)(a+2m))
 		n := div(mulx(fm,fixed(b-m),xx),mul(fixed(a+m+m-1),amm))
+
 		// d = 1/(nonzero(1+n*d))
 		d = nonzero(muladd1(n,d)).inv()
 		// c = nonzero(1 + n/c)

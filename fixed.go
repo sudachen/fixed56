@@ -1,6 +1,7 @@
 package fixed56
 
 import (
+	"encoding/binary"
 	"errors"
 )
 
@@ -24,6 +25,14 @@ func One() Fixed {
 
 func Zero() Fixed {
 	return Fixed{}
+}
+
+func (x Fixed) Abs() Fixed {
+	return x.abs()
+}
+
+func (x Fixed) Neg() Fixed {
+	return x.neg()
 }
 
 func (x Fixed) Floor() int64 {
@@ -56,6 +65,47 @@ func (x Fixed) Add(y Fixed) Fixed {
 
 func (x Fixed) Sub(y Fixed) Fixed {
 	return sub(x,y)
+}
+
+func (x Fixed) LessThan(y Fixed) bool {
+	return x.less(y)
+}
+
+// GreaterThan compares fixed values and returns true if x > y
+func (x Fixed) GreaterThan(y Fixed) bool {
+	return x.greater(y)
+}
+
+// EqualTo compares fixed values and returns true if x == y
+func (x Fixed) EqualTo(y Fixed) bool {
+	return x.equal(y)
+}
+
+func DivUint64(p, q uint64) Fixed {
+	return div(ufixed(p), ufixed(q))
+}
+
+// Div64 creates new Fixed equal to p/q signed result
+func Div64(p, q int64) Fixed {
+	return div(fixed(p), fixed(q))
+}
+
+// FracFromBytes takes only fractional part from bytes array and return fixed value
+func FracFromBytes(x []byte) Fixed {
+	return rawfixed(int64(binary.LittleEndian.Uint64(x)) & fracMask)
+}
+
+// FromBytes creates fixed value from bytes array
+func FromBytes(x []byte) Fixed {
+	return Fixed{ lo: binary.LittleEndian.Uint64(x[:8]), hi: binary.LittleEndian.Uint64(x[8:])}
+}
+
+// Bytes converts fixed value into bytes array
+func (x Fixed) Bytes() []byte {
+	b := [16]byte{}
+	binary.LittleEndian.PutUint64(b[:8], x.lo)
+	binary.LittleEndian.PutUint64(b[8:], x.hi)
+	return b[:]
 }
 
 func BinCDF(n int64, p Fixed, x int64) Fixed {

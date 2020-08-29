@@ -41,6 +41,10 @@ func fixed(x int64) Fixed {
 	return Fixed{ lo:v<<56, hi:(v>>8)|s }
 }
 
+func ufixed(x uint64) Fixed {
+	return Fixed{ lo:x<<56, hi:x>>8 }
+}
+
 func fixed_(x uint64, sign uint64) Fixed {
 	return Fixed{ lo: x, hi: sign }
 }

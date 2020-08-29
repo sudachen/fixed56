@@ -1,6 +1,8 @@
 package fixed56
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestFixed_From(t *testing.T) {
 	values := []float64{0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9}
@@ -21,3 +23,5 @@ func TestFixed_From56(t *testing.T) {
 		}
 	}
 }
+
+
