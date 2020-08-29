@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func TestRange_NegExp(t *testing.T) {
 	var maxEpow = fixed56(34)
 	acc := accuracy{Epsilon: float56(1 << max64(int64(fracBits-46), 2))}
@@ -27,7 +26,7 @@ func TestRange_NegExp(t *testing.T) {
 }
 
 func TestRange_Exp(t *testing.T) {
-	var maxEpow = fixed56(33)//fixed56(88)
+	var maxEpow = fixed56(33) //fixed56(88)
 	acc := accuracy{}
 	rand.Seed(43)
 	step := maxEpow / 1000
@@ -37,7 +36,7 @@ func TestRange_Exp(t *testing.T) {
 		y := exp56(a)
 		got := y.float()
 		want := math.Exp(float56(a))
-		acc.Epsilon = float56(1 << min64(max64(int64(y.bitlen()-24), 2),62))
+		acc.Epsilon = float56(1 << min64(max64(int64(y.bitlen()-24), 2), 62))
 		if ok := acc.update(y, want); !ok {
 			t.Errorf("exp(%v) => got %v|%v, want %v|%v, eps: %v", float56(a), y, got, From(want), want, acc.Epsilon)
 			t.FailNow()
@@ -45,4 +44,3 @@ func TestRange_Exp(t *testing.T) {
 	}
 	t.Log(acc)
 }
-

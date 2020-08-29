@@ -10,7 +10,7 @@ func Test_Lgamma1(t *testing.T) {
 	acc := accuracy{Epsilon: 1e-10}
 	rand.Seed(42)
 	maxarg := int64(1000000)
-	step := maxarg/1000
+	step := maxarg / 1000
 	for i := int64(0); i < 10000; i += step {
 		a := i + rand.Int63n(step)
 		y := lgamma(a)
@@ -38,4 +38,3 @@ func Test_Lgamma2(t *testing.T) {
 	}
 	t.Log(acc)
 }
-

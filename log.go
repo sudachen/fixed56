@@ -5,7 +5,7 @@ import (
 )
 
 func alogx(x int64, a int64) Fixed {
-	return mul(log(x),fixed(a))
+	return mul(log(x), fixed(a))
 }
 
 func log(x int64) Fixed {
@@ -21,7 +21,7 @@ func log56(x int64) int64 {
 }
 
 func ilog56(x int64) int64 {
-	return mul56(log2(x,0), invLog2E)
+	return mul56(log2(x, 0), invLog2E)
 }
 
 func log2(x int64, onew int) int64 {

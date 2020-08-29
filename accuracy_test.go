@@ -8,12 +8,11 @@ import (
 
 const testEpsilonBits int = 3
 
-
 type accuracy struct {
-	min, max int
+	min, max         int
 	emax, emin, eavg float64
-	avg, count float64
-	Epsilon    float64
+	avg, count       float64
+	Epsilon          float64
 }
 
 func (acc *accuracy) update(got Fixed, fwant float64) bool {
@@ -24,7 +23,7 @@ func (acc *accuracy) update(got Fixed, fwant float64) bool {
 		epsilon = acc.Epsilon
 	}
 	want := From(fwant)
-	e := math.Abs(got.float()-want.float())
+	e := math.Abs(got.float() - want.float())
 	if e > epsilon {
 		return false
 	}
@@ -36,7 +35,9 @@ func (acc *accuracy) update(got Fixed, fwant float64) bool {
 		}
 	}
 	t := 0
-	if a > fracBits {a = fracBits}
+	if a > fracBits {
+		a = fracBits
+	}
 	for i := a; i >= 0; i-- {
 		if got.bit(i) != want.bit(i) {
 			break
@@ -70,4 +71,3 @@ func (acc accuracy) String() string {
 func randomFixed(i int64) int64 {
 	return i + rand.Int63n(oneValue)>>(fracBits-12)
 }
-

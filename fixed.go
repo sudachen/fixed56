@@ -52,19 +52,19 @@ func (x Fixed) Float() float64 {
 }
 
 func (x Fixed) Mul(y Fixed) Fixed {
-	return mul(x,y)
+	return mul(x, y)
 }
 
 func (x Fixed) Div(y Fixed) Fixed {
-	return div(x,y)
+	return div(x, y)
 }
 
 func (x Fixed) Add(y Fixed) Fixed {
-	return add(x,y)
+	return add(x, y)
 }
 
 func (x Fixed) Sub(y Fixed) Fixed {
-	return sub(x,y)
+	return sub(x, y)
 }
 
 func (x Fixed) LessThan(y Fixed) bool {
@@ -97,7 +97,7 @@ func FracFromBytes(x []byte) Fixed {
 
 // FromBytes creates fixed value from bytes array
 func FromBytes(x []byte) Fixed {
-	return Fixed{ lo: binary.LittleEndian.Uint64(x[:8]), hi: binary.LittleEndian.Uint64(x[8:])}
+	return Fixed{lo: binary.LittleEndian.Uint64(x[:8]), hi: binary.LittleEndian.Uint64(x[8:])}
 }
 
 // Bytes converts fixed value into bytes array
@@ -117,4 +117,3 @@ func BinCDF(n int64, p Fixed, x int64) Fixed {
 		return incomplete(n-x, x+1, oneValue-p.fixed56())
 	}
 }
-

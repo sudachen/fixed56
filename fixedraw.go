@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	fracBits = 56
-	fracMask = oneValue - 1
-	halfValue = oneValue >> 1
-	oneValue int64 = 1<<fracBits
+	fracBits        = 56
+	fracMask        = oneValue - 1
+	halfValue       = oneValue >> 1
+	oneValue  int64 = 1 << fracBits
 )
 
 const ln2 = int64(0xb17217f7d1cf78)    // logₑ(2)
@@ -77,4 +77,3 @@ func float56(x int64) float64 {
 	f := math.Float64frombits(a)
 	return f
 }
-

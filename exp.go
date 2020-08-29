@@ -1,6 +1,6 @@
 package fixed56
 
-func exp(x Fixed) Fixed{
+func exp(x Fixed) Fixed {
 	if x.integer() < -38 {
 		return fixed(0)
 	}
@@ -21,7 +21,7 @@ func exp56(x int64) Fixed {
 
 	if k < 0 {
 		z = z.shr(int(-k))
-	}  else {
+	} else {
 		z = z.shl(int(k))
 	}
 
