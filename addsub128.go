@@ -3,7 +3,7 @@ package fixed56
 import "math/bits"
 
 func add(x, y Fixed) Fixed {
-	xs, ys := x.sign_(), y.sign_()
+	xs, ys := x.hi&signMask, y.hi&signMask
 	if xs != ys {
 		if ys != 0 {
 			// x + -y => x - y
@@ -37,7 +37,7 @@ func uadd(x, y Fixed) Fixed {
 	r, c := Fixed{}, uint64(0)
 	r.lo, c = bits.Add64(x.lo, y.lo, c)
 	r.hi, c = bits.Add64(x.hi, y.hi, c)
-	if c != 0 || r.hi&signMask != 0 {
+	if c|r.hi&signMask != 0 {
 		panic(ErrOverflow)
 	}
 	return r

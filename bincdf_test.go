@@ -6,12 +6,32 @@ import (
 	"testing"
 )
 
+type BinCDFCase struct {
+	n, x   int64
+	p, cdf float64
+	s      string
+}
+
 func TestFixed_BinCDFa(t *testing.T) {
 	//  0.005131128987239601876
 	//  https://www.wolframalpha.com/input/?i=N%5BCDF%5BBinomialDistribution%5B34%2C0.9%5D%2C25%5D%2C30%5D
 	v := BinCDF(34, From(0.9), 25)
 	v2 := bincdf_(34, 0.9, 25)
 	fmt.Printf("cdf(34,0.9,25) => 0.00513112898723960 | fixed: %.17f, float64: %.17f\n", v.Float(), v2)
+}
+
+func Benchmark_Fixed_BinCDFa(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bincdfResultFix = BinCDF(34, From(0.9), 25)
+	}
+	bincdfResultFix.lo++
+}
+
+func Benchmark_Float_BinCDFa(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bincdfResultFlt = bincdf_(34, 0.9, 25)
+	}
+	bincdfResultFlt++
 }
 
 func TestFixed_BinCDFb(t *testing.T) {
@@ -30,6 +50,20 @@ func TestFixed_BinCDFc(t *testing.T) {
 	fmt.Printf("cdf(3400,0.72,2500) => 0.97799731700834905 | fixed: %.17f, float64: %.17f\n", v.Float(), v2)
 }
 
+func Benchmark_Fixed_BinCDFc(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bincdfResultFix = BinCDF(3400, From(0.72), 2500)
+	}
+	bincdfResultFix.lo++
+}
+
+func Benchmark_Float_BinCDFc(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bincdfResultFlt = bincdf_(3400, 0.72, 2500)
+	}
+	bincdfResultFlt++
+}
+
 func TestFixed_BinCDFd(t *testing.T) {
 	//  0.50230327513576946695
 	//  https://www.wolframalpha.com/input/?i=N%5BCDF%5BBinomialDistribution%5B30000%2C0.5%5D%2C15000%5D%2C20%5D
@@ -38,39 +72,8 @@ func TestFixed_BinCDFd(t *testing.T) {
 	fmt.Printf("cdf(30000, 0.5, 15000) => 0.50230327513576946 | fixed: %.17f, float64: %17f\n", v.Float(), v2)
 }
 
-func TestFixed_BinCDF2(t *testing.T) {
-	acc := accuracy{Epsilon: 1e-10}
-	for i, tc := range bincdfTestCases {
-		p := From(tc.p)
-		got := BinCDF(tc.n, p, tc.x)
-		if ok := acc.update(got, tc.cdf); !ok {
-			t.Errorf("%d: BinCDF(%v,%v,%v) => got %v|%v, want %v|%v", i, tc.n, tc.p, tc.x, got, got.Float(), From(tc.cdf), tc.cdf)
-		}
-	}
-	t.Log(acc)
-}
-
 var bincdfResultFix Fixed
-
-func Benchmark_Fixed_BinCDF(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		tc := bincdfTestCases[i%len(bincdfTestCases)]
-		bincdfResultFix = BinCDF(tc.n, From(tc.p), tc.x)
-	}
-
-	bincdfResultFix.lo++
-}
-
 var bincdfResultFlt float64
-
-func Benchmark_Float_BinCDF(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		tc := bincdfTestCases[i%len(bincdfTestCases)]
-		bincdfResultFlt = bincdf_(tc.n, tc.p, tc.x)
-	}
-
-	bincdfResultFlt++
-}
 
 func incomplete_(a, b, x float64) float64 {
 	// Iₓ(a,b) = (xᵃ*(1-x)ᵇ)/(a*B(a,b)) * (1/(1+(d₁/(1+(d₂/(1+...))))))
@@ -127,7 +130,6 @@ func bcf_(x, a, b float64) float64 {
 		amm := a + fm + fm
 
 		// d_{2m} = n = m(b-m)x/((a+2m-1)(a+2m))
-		//n := div(mulx(fm,fixed(b-m),xx),mul(fixed(a+m+m-1),amm))
 		n := fm * (b - fm) * x / ((amm - 1.) * amm)
 		d = 1. / (nonzero(1. + n*d))
 		c = nonzero(1 + n/c)
@@ -145,7 +147,7 @@ func bcf_(x, a, b float64) float64 {
 			return h
 		}
 	}
-	panic(ErrOverflow)
+	//panic(ErrOverflow)
 	return h
 }
 

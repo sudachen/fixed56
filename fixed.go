@@ -82,7 +82,7 @@ func (x Fixed) EqualTo(y Fixed) bool {
 }
 
 func DivUint64(p, q uint64) Fixed {
-	return div(ufixed(p), ufixed(q))
+	return udiv(ufixed(p), ufixed(q))
 }
 
 // Div64 creates new Fixed equal to p/q signed result

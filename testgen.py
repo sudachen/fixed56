@@ -175,19 +175,40 @@ var testCases = []struct {
     os.rename('fixed_ts_test.go1', 'fixed_ts_test.go')
 
 
-def gen_bincdf_tests():
+def gen_bincdf_tests(A,B,e):
 
-    f = open('bincdf_ts_test.go1', 'w+')
+    fname = 'bincdf_ts{:1}_test.go'.format(B)
+    tmpfname = fname+'1'
+
+    f = open(tmpfname, 'w+')
     f.write('''
 package fixed56
+import "testing"
 
-var bincdfTestCases = []struct {
-    n,x int64
-    p,cdf float64
-    s string
-}{''')
+var bincdfTestCases_{:1} = []BinCDFCase{{'''.format(B))
 
     def case(n,x,p):
+        n = int(n)
+        x = int(x)
+        p = float(p)
+
+        cdf = scipy.stats.binom.cdf(x, n, p)
+        if abs(cdf) < 1e-16:
+            cdf = 0
+        #print(cdf, x,n,p)
+        if math.isnan(cdf):
+            return
+
+        f.write('''
+{{
+    n: {:1},
+    x: {:2},
+    p: {:3},
+    cdf: {:4},
+    s: "{:5}",
+}},'''.format(n,x,p,cdf,string(fixed(cdf))))
+
+    def case2(n,x,p):
         n = int(n)
         x = int(x)
         p = float(p)
@@ -222,30 +243,61 @@ var bincdfTestCases = []struct {
         x = n-n//10 - random.randint(0,n//10)
         case(n, x, 0.8 + random.random()*0.2 - 0.1)
 
-    #N = 1 << 32
-    #q(N)
-    for k in range(50):
-        n = random.randint(30,1000)
-        q(n)
-    for k in range(50):
-        n = random.randint(300,10000)
-        q(n)
-    for k in range(50):
-        n = random.randint(3000,100000)
-        q(n)
-    for k in range(50):
-        n = random.randint(30000,1000000)
+    for k in range(10):
+        n = random.randint(A,B)
         q(n)
 
+    for t in range(1,10):
+        for k in range(1,B,B//10):
+            case2(B, k, 0.+t/10)
+
     f.write('\n}\n')
+
+    f.write(('''
+func Benchmark_Fixed_BinCDF_{}(b *testing.B) {{
+	for i := 0; i < b.N; i++ {{
+		tc := bincdfTestCases_{}[i%len(bincdfTestCases_{})]
+		bincdfResultFix = BinCDF(tc.n, From(tc.p), tc.x)
+	}}
+
+	bincdfResultFix.lo++
+}}
+
+func Benchmark_Float_BinCDF_{}(b *testing.B) {{
+	for i := 0; i < b.N; i++ {{
+		tc := bincdfTestCases_{}[i%len(bincdfTestCases_{})]
+		bincdfResultFlt = bincdf_(tc.n, tc.p, tc.x)
+	}}
+
+	bincdfResultFlt++
+}}
+
+func TestFixed_BinCDF_{}(t *testing.T) {{
+	acc := accuracy{{Epsilon: '''+e+'''}}
+	for i, tc := range bincdfTestCases_{} {{
+		p := From(tc.p)
+		got := BinCDF(tc.n, p, tc.x)
+		if ok := acc.update(got, tc.cdf); !ok {{
+			t.Errorf("%d: BinCDF(%v,%v,%v) => got %v|%v, want %v|%v", i, tc.n, tc.p, tc.x, got, got.Float(), From(tc.cdf), tc.cdf)
+		}}
+	}}
+	t.Log(acc)
+}}
+
+''').format(B,B,B,B,B,B,B,B))
+
     f.close()
-    if os.path.isfile('bincdf_ts_test.go'):
-        os.remove('bincdf_ts_test.go')
-    os.rename('bincdf_ts_test.go1', 'bincdf_ts_test.go')
+    if os.path.isfile(fname):
+        os.remove(fname)
+    os.rename(tmpfname, fname)
 
 
 if __name__ == '__main__':
     gen_mul_tests()
     gen_div_tests()
     gen_fixed_tests()
-    gen_bincdf_tests()
+    gen_bincdf_tests(10,100,'1e-14')
+    gen_bincdf_tests(100,1000,'1e-12')
+    gen_bincdf_tests(1000,10000,'1e-10')
+    gen_bincdf_tests(1000,1000000,'1e-6')
+    gen_bincdf_tests(100000,10000000,'1e-4')

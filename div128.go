@@ -2,6 +2,7 @@ package fixed56
 
 import "math/bits"
 
+//go:noinline
 func div64(u Fixed, v uint64) (Fixed, Fixed) {
 	if u.hi < v {
 		lo, r := bits.Div64(u.hi, u.lo, v)
@@ -16,39 +17,46 @@ func div64(u Fixed, v uint64) (Fixed, Fixed) {
 func div128(u, v Fixed) (Fixed, Fixed) {
 	if v.hi == 0 {
 		return div64(u, v.lo)
-	} else {
-		n := bits.LeadingZeros64(v.hi)
-		v1 := Fixed{lo: v.lo << n, hi: v.hi<<n | v.lo>>(64-n)}
-
-		tq, _ := bits.Div64(u.hi, u.lo, v1.hi)
-		tq >>= 64 - n
-		if tq != 0 {
-			tq--
-		}
-
-		q := Fixed{lo: tq}
-		r := sub(u, mul64_(v, tq))
-
-		if r.greater(v) {
-			q = add(q, fixedRawval1)
-			r = sub(r, v)
-		}
-
-		return q, r
 	}
+
+	n := bits.LeadingZeros64(v.hi)
+	v1 := Fixed{lo: v.lo << n, hi: v.hi<<n | v.lo>>(64-n)}
+
+	tq, _ := bits.Div64(u.hi, u.lo, v1.hi)
+	tq >>= 64 - n
+	tq -= -tq >> 63 //if tq != 0 { tq-- }
+
+	q := Fixed{lo: tq}
+	r := sub(u, mul64_(v, tq))
+
+	if r.greater(v) {
+		lo, c := bits.Add64(q.lo, 1, 0)
+		q = Fixed{lo: lo, hi: c}
+		r = sub(r, v)
+	}
+
+	return q, r
+}
+
+func udiv(u, v Fixed) Fixed {
+	if u.hi & ^uint64(0x07f) == 0 {
+		r, _ := div128(Fixed{lo: u.lo << 56, hi: u.hi<<56 | u.lo>>8}, v)
+		return r
+	}
+
+	a, rem := div128(u, v)
+	a = a.shl(56)
+	b, n := rem.shlmax(56)
+	v = v.shr(56 - n)
+	b, _ = div128(b, v)
+	a = add(a, b)
+	return a
 }
 
 func div(x, y Fixed) Fixed {
 	u, v := x.abs(), y.abs()
-	a, rem := div128(u, v)
-	a = a.shl(56)
-	if !rem.iszero() {
-		b, n := rem.shlmax(56)
-		v = v.shr(56 - n)
-		b, _ = div128(b, v)
-		a = add(a, b)
-	}
-	a.hi |= x.sign_() ^ y.sign_()
+	a := udiv(u, v)
+	a.hi |= x.hi&signMask ^ y.hi&signMask
 	return a
 }
 

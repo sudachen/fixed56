@@ -7,6 +7,11 @@ func incomplete(a, b, x int64) Fixed {
 	// (xᵃ*(1-x)ᵇ)/B(a,b) = exp(lgamma(a+b) - lgamma(a) - lgamma(b) + a*log(x) + b*log(1-x))
 	// d_{2m+1} = -(a+m)(a+b+m)x/((a+2m)(a+2m+1))
 	// d_{2m}   = m(b-m)x/((a+2m-1)(a+2m))
+
+	if a > int64(1)<<30 || b > int64(1)<<30 {
+		panic(ErrOverflow)
+	}
+
 	bt := fixed(0)
 
 	if 0 < x && x < oneValue {
@@ -32,7 +37,7 @@ func incomplete(a, b, x int64) Fixed {
 	return bcfx()
 }
 
-var bcfEpsilon = from(1e-14)
+var bcfEpsilon = from(1e-13)
 
 func bcf(x, a, b int64) Fixed {
 	const iters = 300
@@ -53,11 +58,12 @@ func bcf(x, a, b int64) Fixed {
 	del := fixed(0)
 
 	for m := int64(1); m < iters; m++ {
-		fm := fixed(m)
-		amm := fixed(a + m + m)
+		//fm := fixed(m)
+		//amm := fixed(a + m + m)
 
 		// d_{2m} = n = m(b-m)x/((a+2m-1)(a+2m))
-		n := div(mulx(fm, fixed(b-m), xx), mul(fixed(a+m+m-1), amm))
+		//n := div(mulx(fm, fixed(b-m), xx), mul(fixed(a+m+m-1), amm))
+		n := div(mul(xx, fixed(m*(b-m))), fixed((a+m+m-1)*(a+m+m)))
 
 		// d = 1/(nonzero(1+n*d))
 		d = nonzero(muladd1(n, d)).inv()
@@ -67,7 +73,8 @@ func bcf(x, a, b int64) Fixed {
 		h = mulx(h, d, c)
 
 		// d_{2m+1} = n = -(a+m)(a+b+m)x/((a+2m)(a+2m+1))
-		n = div(mulx(fixed(-a-m), fixed(a+b+m), xx), mul(amm, fixed(a+m+m+1)))
+		//n = div(mulx(fixed(-a-m), fixed(a+b+m), xx), mul(amm, fixed(a+m+m+1)))
+		n = div(mul(fixed((-a-m)*(a+b+m)), xx), fixed((a+m+m)*(a+m+m+1)))
 		// d = 1/(nonzero(1+n*d))
 		d = nonzero(muladd1(n, d)).inv()
 		// c = nonzero(1 + n/c)
