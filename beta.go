@@ -37,7 +37,7 @@ func incomplete(a, b, x int64) Fixed {
 	return bcfx()
 }
 
-var bcfEpsilon = from(1e-13)
+var bcfEpsilon = from(1e-14)
 
 func bcf(x, a, b int64) Fixed {
 	const iters = 300

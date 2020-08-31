@@ -193,8 +193,14 @@ var bincdfTestCases_{:1} = []BinCDFCase{{'''.format(B))
         p = float(p)
 
         cdf = scipy.stats.binom.cdf(x, n, p)
-        if abs(cdf) < 1e-16:
+        if abs(cdf) < 1e-15:
             cdf = 0
+        if abs(1-cdf) < 1e-15:
+            cdf = 1
+
+        if cdf == 1 or cdf == 0:
+            return
+
         #print(cdf, x,n,p)
         if math.isnan(cdf):
             return
@@ -214,9 +220,14 @@ var bincdfTestCases_{:1} = []BinCDFCase{{'''.format(B))
         p = float(p)
 
         cdf = scipy.stats.binom.cdf(x, n, p)
-        if abs(cdf) < 1e-16:
+        if abs(cdf) < 1e-15:
             cdf = 0
-        #print(cdf, x,n,p)
+        if abs(1-cdf) < 1e-15:
+            cdf = 1
+
+        if cdf == 1 or cdf == 0:
+            return
+
         if math.isnan(cdf):
             return
 
@@ -243,13 +254,13 @@ var bincdfTestCases_{:1} = []BinCDFCase{{'''.format(B))
         x = n-n//10 - random.randint(0,n//10)
         case(n, x, 0.8 + random.random()*0.2 - 0.1)
 
-    for k in range(10):
+    for k in range(15):
         n = random.randint(A,B)
         q(n)
 
-    for t in range(1,10):
-        for k in range(1,B,B//10):
-            case2(B, k, 0.+t/10)
+    for t in range(1,50):
+        for k in range(1,B,B//100):
+            case2(B, k, t/100)
 
     f.write('\n}\n')
 
